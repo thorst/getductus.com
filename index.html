@@ -1,0 +1,569 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Ductus</title>
+<meta name="description" content="Ductus is a code-first integration engine for healthcare: interfaces in TypeScript, one Rust binary with PostgreSQL, and an engine that tells you why a queue is stuck. In development.">
+<meta property="og:title" content="Ductus">
+<meta property="og:description" content="A code-first integration engine for healthcare. In development.">
+<meta property="og:url" content="https://getductus.com/">
+<meta property="og:type" content="website">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%2313212B'/%3E%3Cpath d='M9 7v10a8 8 0 0 0 8 8h6' fill='none' stroke='%23D9954F' stroke-width='4.5' stroke-linecap='round'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@100..125,500..800&family=Atkinson+Hyperlegible+Mono:wght@400;600&family=Atkinson+Hyperlegible+Next:ital,wght@0,400;0,700;1,400&display=swap">
+<style>
+/* Layout: one column of reading width; the hero and the code sit in a wide two-column band;
+   "what it fixes" is a ledger: the annoyance on the left, what Ductus does and its proof on the right. */
+:root {
+  --paper: #f2f5f6;      /* cool, slightly blue page */
+  --panel: #ffffff;
+  --ink: #13212b;        /* deep slate, the text */
+  --muted: #566873;
+  --line: #d3dce0;
+  --bronze: #95561f;     /* the accent: Roman bronze, for a Latin name */
+  --bronze-soft: #f3e6d8;
+  --term: #0f1a21;       /* terminal and code panels stay dark in both themes */
+  --term-ink: #d7e1e6;
+  --term-dim: #7f939e;
+  --term-key: #e7a764;
+  --term-str: #9fcf9a;
+  --term-ok: #79c39b;
+  --term-bad: #f08c7a;
+  --term-warn: #e9c46a;
+  --bar-ref: #9aabb4;
+
+  --display: "Archivo", "Arial Narrow", "Helvetica Neue", Arial, sans-serif;
+  --body: "Atkinson Hyperlegible Next", "Segoe UI", system-ui, -apple-system, sans-serif;
+  --mono: "Atkinson Hyperlegible Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+
+  --step--1: 0.875rem;
+  --step-0: 1.0625rem;
+  --step-1: 1.25rem;
+  --step-2: 1.6rem;
+  --step-3: clamp(1.9rem, 1.4rem + 2vw, 2.6rem);
+  --step-4: clamp(2.3rem, 1.5rem + 3.6vw, 3.9rem);
+  --wide: 72rem;
+  --read: 42rem;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #0c1317; --panel: #121c22; --ink: #e2e9ec; --muted: #93a4ae; --line: #23313a;
+    --bronze: #dd9a55; --bronze-soft: #2a1f15; --term: #070e12; --bar-ref: #5c6f79;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #0c1317; --panel: #121c22; --ink: #e2e9ec; --muted: #93a4ae; --line: #23313a;
+  --bronze: #dd9a55; --bronze-soft: #2a1f15; --term: #070e12; --bar-ref: #5c6f79;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font: 400 var(--step-0)/1.6 var(--body);
+  -webkit-font-smoothing: antialiased;
+}
+.wrap { max-width: var(--wide); margin-inline: auto; padding-inline: 20px; }
+a { color: var(--bronze); text-underline-offset: 3px; }
+a:hover { text-decoration-thickness: 2px; }
+:focus-visible { outline: 3px solid var(--bronze); outline-offset: 3px; border-radius: 3px; }
+code, pre, .mono { font-family: var(--mono); }
+:not(pre) > code { font-size: 0.9em; background: var(--bronze-soft); padding: 0.05em 0.35em; border-radius: 4px; }
+h1, h2, h3 { font-family: var(--display); font-stretch: 112%; line-height: 1.08; text-wrap: balance; margin: 0; letter-spacing: -0.01em; }
+h2 { font-size: var(--step-3); font-weight: 800; }
+h3 { font-size: var(--step-1); font-weight: 700; font-stretch: 105%; }
+p { margin: 0; }
+.eyebrow { font-family: var(--mono); font-size: var(--step--1); letter-spacing: 0.06em; text-transform: uppercase; color: var(--bronze); }
+.lede { color: var(--muted); max-width: var(--read); }
+
+/* Header */
+.top { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: color-mix(in oklab, var(--paper) 88%, transparent); backdrop-filter: blur(8px); border-bottom: 1px solid var(--line); }
+.top .wrap { display: flex; align-items: center; gap: 24px; padding-block: 12px; flex-wrap: wrap; }
+.brand { display: flex; align-items: center; gap: 10px; text-decoration: none; color: var(--ink); font-family: var(--display); font-weight: 800; font-stretch: 118%; font-size: 1.35rem; letter-spacing: -0.01em; }
+.brand svg { width: 28px; height: 28px; flex: none; }
+.nav { display: flex; gap: 20px; flex-wrap: wrap; font-size: var(--step--1); margin-left: auto; }
+.nav a { color: var(--muted); text-decoration: none; }
+.nav a:hover { color: var(--ink); }
+.status-pill { font-family: var(--mono); font-size: 0.78rem; border: 1px solid var(--bronze); color: var(--bronze); padding: 3px 10px; border-radius: 999px; white-space: nowrap; }
+
+/* Hero */
+.hero .wrap { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr); gap: 48px; padding-block: 72px 64px; align-items: start; }
+.hero h1 { font-size: var(--step-4); font-weight: 800; }
+.hero h1 em { font-style: normal; color: var(--bronze); }
+.hero-copy { display: grid; gap: 22px; min-width: 0; }
+.hero-copy .lede { font-size: var(--step-1); line-height: 1.5; }
+.note { border-left: 3px solid var(--bronze); padding: 4px 0 4px 14px; font-size: var(--step--1); color: var(--muted); max-width: 34rem; }
+.note strong { color: var(--ink); }
+.actions { display: flex; gap: 12px; flex-wrap: wrap; }
+.btn { display: inline-block; padding: 11px 18px; border-radius: 8px; font-weight: 700; text-decoration: none; font-size: var(--step--1); }
+.btn.primary { background: var(--ink); color: var(--paper); }
+.btn.primary:hover { background: var(--bronze); }
+.btn.ghost { border: 1px solid var(--line); color: var(--ink); background: var(--panel); }
+.btn.ghost:hover { border-color: var(--bronze); }
+
+/* Terminal */
+.term { background: var(--term); color: var(--term-ink); border-radius: 12px; font-family: var(--mono); font-size: 0.8rem; line-height: 1.55; min-width: 0; box-shadow: 0 1px 0 rgba(255,255,255,0.04) inset, 0 24px 48px -28px rgba(8, 20, 28, 0.55); }
+.term-bar { display: flex; align-items: center; gap: 7px; padding: 11px 14px; border-bottom: 1px solid rgba(255,255,255,0.07); color: var(--term-dim); font-size: 0.75rem; }
+.term-bar i { width: 10px; height: 10px; border-radius: 50%; background: rgba(255,255,255,0.14); }
+.term-bar span { margin-left: 8px; }
+.term-body { padding: 16px 18px 18px; display: grid; gap: 12px; }
+.term .cmd { color: var(--term-ink); }
+.term .cmd b { color: var(--term-key); font-weight: 400; }
+.finding { white-space: pre-wrap; overflow-wrap: anywhere; padding-left: 12px; border-left: 2px solid; }
+.finding.hot { border-color: var(--term-warn); }
+.finding.down { border-color: var(--term-bad); }
+.finding.msg { border-color: var(--term-key); }
+.finding .route { color: var(--term-key); }
+.finding .say { color: var(--term-ok); }
+.lanes { margin: 0; overflow-x: auto; color: var(--term-dim); font-size: 0.74rem; }
+.lanes .hit { color: var(--term-ink); }
+.term-cap { font-size: var(--step--1); color: var(--muted); margin-top: 12px; }
+
+/* Sections */
+section { border-top: 1px solid var(--line); }
+section > .wrap { padding-block: 80px; display: grid; gap: 40px; }
+.sec-head { display: grid; gap: 14px; max-width: 46rem; }
+
+/* Code */
+.code { display: grid; grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr); gap: 20px; align-items: start; }
+.file { background: var(--term); color: var(--term-ink); border-radius: 12px; min-width: 0; overflow: hidden; }
+.file-name { font-family: var(--mono); font-size: 0.75rem; color: var(--term-dim); padding: 10px 16px; border-bottom: 1px solid rgba(255,255,255,0.07); }
+.file pre { margin: 0; padding: 16px; overflow-x: auto; font-size: 0.8rem; line-height: 1.6; }
+.c { color: var(--term-dim); }
+.k { color: var(--term-key); }
+.s { color: var(--term-str); }
+.hover-tip { position: relative; border-bottom: 1px dashed var(--term-key); }
+.tipbox { display: inline-block; margin: 2px 0 2px 2ch; padding: 1px 8px; border-radius: 5px; background: #24343d; color: #f1f5f7; font-size: 0.72rem; }
+.code-notes { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; }
+.code-notes p { color: var(--muted); font-size: var(--step--1); }
+.code-notes h3 { margin-bottom: 6px; }
+
+/* Ledger */
+.ledger { display: grid; gap: 0; }
+.group-label { font-family: var(--mono); font-size: var(--step--1); letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); padding: 28px 0 10px; border-bottom: 2px solid var(--ink); }
+.group-label:first-child { padding-top: 0; }
+.row { display: grid; grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr); gap: 32px; padding: 22px 0; border-bottom: 1px solid var(--line); }
+.row .pain { font-family: var(--display); font-stretch: 105%; font-weight: 600; font-size: var(--step-1); line-height: 1.3; }
+.row .pain small { display: block; font-family: var(--body); font-weight: 400; font-size: var(--step--1); color: var(--muted); margin-top: 8px; line-height: 1.5; font-stretch: 100%; }
+.row .fix { display: grid; gap: 10px; min-width: 0; }
+.proof { font-size: 0.82rem; color: var(--muted); display: flex; gap: 10px; align-items: baseline; }
+.proof::before { content: "proof"; font-family: var(--mono); font-size: 0.68rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--bronze); border: 1px solid currentColor; border-radius: 4px; padding: 0 5px; flex: none; }
+
+/* Numbers */
+.scale { display: grid; gap: 14px; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 24px; }
+.scale-row { display: grid; grid-template-columns: 15rem minmax(0, 1fr) 6.5rem; gap: 16px; align-items: center; font-size: var(--step--1); }
+.scale-row .track { height: 14px; background: color-mix(in oklab, var(--line) 45%, transparent); border-radius: 3px; position: relative; overflow: hidden; }
+.scale-row .fill { position: absolute; inset: 0 auto 0 0; background: var(--bar-ref); border-radius: 3px; min-width: 2px; }
+.scale-row.us .fill { background: var(--bronze); }
+.scale-row .val { font-family: var(--mono); text-align: right; font-variant-numeric: tabular-nums; }
+.scale-cap { font-size: 0.8rem; color: var(--muted); }
+.table-wrap { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font-size: var(--step--1); }
+th, td { text-align: left; padding: 12px 14px 12px 0; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font-family: var(--mono); font-weight: 600; font-size: 0.75rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+td.n { font-family: var(--mono); font-variant-numeric: tabular-nums; white-space: nowrap; color: var(--ink); font-weight: 600; }
+td.ctx { color: var(--muted); }
+
+/* Guarantees */
+.guarantees { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0; border-top: 2px solid var(--ink); }
+.guarantees > div { padding: 22px 28px 22px 0; border-bottom: 1px solid var(--line); display: grid; gap: 6px; }
+.guarantees p { color: var(--muted); font-size: var(--step--1); }
+
+/* Editions */
+.editions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; }
+.edition { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 26px; display: grid; gap: 14px; align-content: start; }
+.edition.free { border-color: var(--bronze); }
+.edition .tag { font-family: var(--mono); font-size: 0.75rem; color: var(--bronze); }
+.edition ul { margin: 0; padding-left: 1.1em; display: grid; gap: 6px; font-size: var(--step--1); }
+.edition p { font-size: var(--step--1); color: var(--muted); }
+.promises { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px 32px; counter-reset: p; }
+.promises div { display: grid; gap: 4px; font-size: var(--step--1); }
+.promises b { font-family: var(--display); font-stretch: 105%; font-size: 1.02rem; }
+.promises span { color: var(--muted); }
+
+/* Roadmap */
+.road { list-style: none; margin: 0; padding: 0; display: grid; }
+.road li { display: grid; grid-template-columns: 4.5rem 1.2rem minmax(0, 1fr); gap: 14px; position: relative; padding-bottom: 22px; }
+.road li::before { content: ""; position: absolute; left: calc(4.5rem + 14px + 0.6rem - 1px); top: 0.9rem; bottom: 0; width: 2px; background: var(--line); }
+.road li:last-child::before { display: none; }
+.road .ver { font-family: var(--mono); font-weight: 600; font-variant-numeric: tabular-nums; }
+.road .dot { width: 1.2rem; height: 1.2rem; border-radius: 50%; border: 2px solid var(--line); background: var(--paper); margin-top: 0.15rem; position: relative; z-index: 1; }
+.road .done .dot { background: var(--ink); border-color: var(--ink); }
+.road .now .dot { background: var(--bronze); border-color: var(--bronze); box-shadow: 0 0 0 5px var(--bronze-soft); }
+.road .what { display: grid; gap: 2px; }
+.road .what b { font-weight: 700; }
+.road .what span { color: var(--muted); font-size: var(--step--1); }
+.road .now .what b::after { content: "in progress"; margin-left: 10px; font-family: var(--mono); font-weight: 400; font-size: 0.72rem; color: var(--bronze); border: 1px solid currentColor; border-radius: 999px; padding: 1px 8px; vertical-align: 2px; }
+
+/* Footer */
+footer { border-top: 1px solid var(--line); }
+footer .wrap { padding-block: 40px 56px; display: flex; flex-wrap: wrap; gap: 16px 40px; justify-content: space-between; font-size: var(--step--1); color: var(--muted); }
+.contact { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.contact .mono { color: var(--ink); user-select: all; }
+.copy { font: inherit; font-size: 0.78rem; border: 1px solid var(--line); background: var(--panel); color: var(--ink); border-radius: 6px; padding: 3px 10px; cursor: pointer; }
+.copy:hover { border-color: var(--bronze); }
+
+@media (max-width: 900px) {
+  .hero .wrap, .code { grid-template-columns: minmax(0, 1fr); }
+  .hero .wrap { padding-block: 48px; gap: 36px; }
+  .code-notes, .promises { grid-template-columns: minmax(0, 1fr); }
+  .row { grid-template-columns: minmax(0, 1fr); gap: 12px; }
+  .editions, .guarantees { grid-template-columns: minmax(0, 1fr); }
+  .scale-row { grid-template-columns: minmax(0, 1fr) 6rem; }
+  .scale-row .track { grid-column: 1 / -1; grid-row: 2; }
+  section > .wrap { padding-block: 56px; }
+}
+@media (max-width: 560px) {
+  .nav { display: none; }
+  .status-pill { margin-left: auto; }
+}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="wrap">
+    <a class="brand" href="#">
+      <svg viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="7" fill="var(--ink)"/><path d="M9 7v10a8 8 0 0 0 8 8h6" fill="none" stroke="var(--bronze)" stroke-width="4.5" stroke-linecap="round"/></svg>
+      ductus
+    </a>
+    <nav class="nav" aria-label="Sections">
+      <a href="#code">Interfaces</a>
+      <a href="#fixes">What it fixes</a>
+      <a href="#numbers">Numbers</a>
+      <a href="#open-core">Open core</a>
+      <a href="#roadmap">Roadmap</a>
+    </nav>
+    <span class="status-pill">v0.5 in development</span>
+  </div>
+</header>
+
+<main>
+<div class="hero">
+  <div class="wrap">
+    <div class="hero-copy">
+      <p class="eyebrow">Integration engine for healthcare</p>
+      <h1>An integration engine that tells you <em>why the queue is stuck</em>.</h1>
+      <p class="lede">Ductus moves HL7 v2, JSON, XML, CSV and files between hospital systems. Interfaces are TypeScript you can read, test and keep in Git. They run on one Rust binary with PostgreSQL as the store and queue.</p>
+      <p class="lede">It's for interface teams running hundreds of Mirth or Cloverleaf connections who are tired of guessing.</p>
+      <p class="note"><strong>Early development.</strong> v0.5 is in progress and Ductus isn't ready for production yet. Everything on this page works today and is checked by tests or a demo that runs on every change.</p>
+      <div class="actions">
+        <a class="btn primary" href="#fixes">See what it fixes</a>
+        <a class="btn ghost" href="#open-core">How it's licensed</a>
+      </div>
+    </div>
+
+    <figure style="margin:0; min-width:0">
+      <div class="term" role="img" aria-label="Terminal output of ductus hotspots naming three different causes of a backlog">
+        <div class="term-bar"><i></i><i></i><i></i><span>ductus hotspots adt</span></div>
+        <div class="term-body">
+          <div class="cmd">$ <b>ductus hotspots</b> adt</div>
+          <div class="finding hot"><span class="route">adt → archive:</span> 400 waiting in 20 of 64 lanes (paused); worker 0 has 80% of the backlog (4 of 4 workers busy); <span class="say">lane 36 has 73% of the backlog (290, key 100000 at its head): one key or a few arrive faster than they're sent</span></div>
+          <div class="finding down"><span class="route">adt → billing:</span> 400 waiting in 20 of 64 lanes; <span class="say">every worker is retrying its first message: the receiver, or something the code calls, looks down</span> (last error: error sending request for url (http://127.0.0.1:8096/charges))</div>
+          <div class="finding msg"><span class="route">adt → lab:</span> 20 waiting in 5 of 64 lanes; worker 1 blocked by message 4205199 (key 100007, lane 49, 1 attempt, waiting 0s): HTTP 503 Service Unavailable: lab busy for this patient; 19 wait behind it in its 5 lanes; <span class="say">other messages were sent since it arrived (last 0s ago): look at this message</span></div>
+<pre class="lanes">  lane   worker  waiting  first msg  key      attempts  last error
+  45     1             7  4205202    100010          0
+  21     1             5  4205270    100018          0
+  33     1             4  4205206    100014          0
+<span class="hit">  49     1             2  4205199    100007          1  HTTP 503 Service Unavailable: lab busy for this patient</span>
+  61     1             2  4205215    100003          0</pre>
+        </div>
+      </div>
+      <figcaption class="term-cap">Real output from the hotspots demo: one ADT feed, three receivers, three different problems. The archive is paused under one busy patient, billing is down, and the lab rejects one patient's message while 380 others go through. Columns trimmed to fit.</figcaption>
+    </figure>
+  </div>
+</div>
+
+<section id="code">
+  <div class="wrap">
+    <div class="sec-head">
+      <p class="eyebrow">What an interface looks like</p>
+      <h2>A folder with config, code and a test</h2>
+      <p class="lede">No drag-and-drop canvas and no exported XML. An interface is a few small files that diff cleanly in a pull request and run the same way on your laptop as in production.</p>
+    </div>
+    <div class="code">
+      <div class="file">
+        <div class="file-name">interfaces/adt-in/interface.yaml</div>
+<pre><span class="k">name</span>: adt-in
+<span class="k">source</span>:
+  <span class="k">mllp</span>: { <span class="k">port</span>: 6661 }
+<span class="k">script</span>: transform.ts
+<span class="k">ordering</span>:
+  <span class="k">key</span>: PID-3.1      <span class="c"># same MRN stays in order</span>
+<span class="k">retention</span>: 3w
+<span class="k">destinations</span>:       <span class="c"># each: own queue, retries, status</span>
+  <span class="k">lab</span>:
+    <span class="k">mllp</span>: { <span class="k">host</span>: 10.0.0.5, <span class="k">port</span>: 6662 }
+  <span class="k">billing</span>:
+    <span class="k">http</span>: { <span class="k">url</span>: <span class="s">"https://billing.example.org/charges"</span> }
+    <span class="k">transform</span>: toBilling
+    <span class="k">output</span>: json</pre>
+      </div>
+      <div class="file">
+        <div class="file-name">interfaces/adt-in/transform.ts</div>
+<pre><span class="k">import</span> { db, kill, <span class="k">type</span> Message, <span class="k">type</span> Meta } <span class="k">from</span> <span class="s">"@ductus/sdk"</span>;
+
+<span class="k">export function</span> transform(msg: Message) {
+  <span class="k">if</span> (msg.MSH[9][1] !== <span class="s">"ADT"</span>) <span class="k">return null</span>;   <span class="c">// filter</span>
+  <span class="hover-tip">msg.PID[5]</span>[1] = msg.PID[5][1].toUpperCase();
+<span class="tipbox">PID-5 Patient Name (XPN)</span>
+  <span class="k">return</span> msg;
+}
+
+<span class="k">export async function</span> toBilling(msg: Message, meta: Meta) {
+  <span class="k">const</span> account = <span class="k">await</span> db(<span class="s">"billing_db"</span>).one(
+    <span class="s">"SELECT id FROM accounts WHERE mrn = $1"</span>, [msg.PID[3][1]]);
+  <span class="k">if</span> (!account) <span class="k">return</span> kill(<span class="s">"not billable"</span>);
+  <span class="k">return</span> { id: meta.id, account: account.id, event: msg.MSH[9][2] };
+}</pre>
+      </div>
+    </div>
+    <div class="code-notes">
+      <div>
+        <h3>HL7 the way you say it</h3>
+        <p><code>msg.PID[5][1]</code> is PID-5.1, numbered like the spec. Hover it in VS Code and you see the field's name and data type. A missing field reads as empty instead of throwing.</p>
+      </div>
+      <div>
+        <h3>Tests without production</h3>
+        <p><code>ductus test</code> runs each interface's tests with databases and APIs mocked in one line (<code>mock.db("billing_db", [{ id: 42 }])</code>). Forget a mock and the failure names the line to add.</p>
+      </div>
+      <div>
+        <h3>Checked before deploy</h3>
+        <p><code>ductus validate</code> type-checks the code with an embedded TypeScript compiler and checks every database and API name it uses against the environment you're promoting to.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="fixes">
+  <div class="wrap">
+    <div class="sec-head">
+      <p class="eyebrow">What it fixes</p>
+      <h2>The annoyances you've learned to live with</h2>
+      <p class="lede">Each of these comes from years of running interface engines at hospital scale. Each one names how we prove the fix.</p>
+    </div>
+
+    <div class="ledger">
+      <div class="group-label">When something goes wrong</div>
+
+      <div class="row">
+        <p class="pain">“The queue is stuck.”<small>The count goes up. Someone scrolls to the first message and guesses whether the receiver is down or rejecting one patient. A busy patient looks the same as an outage.</small></p>
+        <div class="fix">
+          <p><code>ductus hotspots</code> shows where each backlog sits and what it means: one message holding up a worker, a receiver that's down, or one patient arriving faster than a receiver takes them. It names the message, the MRN, the attempts and the last error.</p>
+          <p class="proof">The hotspots demo above runs on every change. 300,000 waiting messages are analysed in about 40 ms.</p>
+        </div>
+      </div>
+
+      <div class="row">
+        <p class="pain">One receiver down holds up the rest.<small>Or it errors, and someone works out by hand which systems got which messages and resends to the one that missed them.</small></p>
+        <div class="fix">
+          <p>Each destination of an interface has its own queue, order, retries and status. A receiver that's down holds up only itself, then catches up in order. Status is one small row per message and destination, with no extra copy of the message.</p>
+          <p class="proof">Lab down while billing and archive get all 200 messages. Engine killed with 200 waiting, restarted, lab back: 200 of 200 delivered, none twice, none out of order.</p>
+        </div>
+      </div>
+
+      <div class="row">
+        <p class="pain">One endless loop hangs the engine.<small>A runaway transformer script blocks its channel and everything that shares its process until someone notices.</small></p>
+        <div class="fix">
+          <p>Every run of interface code has a time budget and every script engine a memory limit. Runaway code is stopped, its message is set aside with a plain reason, and the neighbours keep flowing. If it keeps happening, only that interface stops, and its messages wait safely.</p>
+          <p class="proof">Four interfaces on one thread: three loop or fill their memory, the fourth still delivers 200 of 200, and every sender is acknowledged at full speed.</p>
+        </div>
+      </div>
+
+      <div class="row">
+        <p class="pain">A receiver cut off for months fills the disk.<small>After a vendor's breach, its feed waits until security clears it. Either the backlog is purged with everything else, or nothing old can be purged while it waits.</small></p>
+        <div class="fix">
+          <p>Old messages go by dropping whole partitions, never by a pruner deleting rows under live traffic. Messages someone still needs move aside to a held area first. The disk holds the normal window plus the backlog, and the backlog is still delivered in order.</p>
+          <p class="proof">300,000 held messages moved in the background in 58 seconds, then delivered in order in 174 seconds once the receiver was resumed.</p>
+        </div>
+      </div>
+
+      <div class="row">
+        <p class="pain">Maintenance means juggling threads.<small>Stop inbound one by one, watch the outbound queues drain, stop the engine, and hope nothing arrived in between.</small></p>
+        <div class="fix">
+          <p><code>ductus drain --wait --stop</code> stops taking messages on every interface at once, so senders keep theirs queued. It delivers what's stored, shows what it's waiting for, and stops the engine once nothing is pending.</p>
+          <p class="proof">An end-to-end test drains with three messages waiting for a receiver that's down, and the engine exits only after all three are delivered.</p>
+        </div>
+      </div>
+
+      <div class="group-label">Knowing what connects to what</div>
+
+      <div class="row">
+        <p class="pain">“Vendor X was breached. Which interfaces?”<small>The answer lives in people's heads, an old spreadsheet, or a grep through exported channels that misses the lookups buried in scripts.</small></p>
+        <div class="fix">
+          <p>Every interface names the applications and vendors on each side. <code>ductus impact --vendor "Epic Systems"</code>, or <code>--host 10.20.30.0/24</code> for a VPN change, lists every interface affected, how it's affected, and who owns it. That includes databases its code queries, found through shared libraries.</p>
+          <p class="proof">Tested with a vendor reached only through a database that a shared library queries.</p>
+        </div>
+      </div>
+
+      <div class="row">
+        <p class="pain">“The new connection doesn't work.”<small>Is it DNS, the firewall, the VPN, their certificate or the password? Each guess is a ticket and a day.</small></p>
+        <div class="fix">
+          <p><code>ductus doctor</code> checks every connection from the server it runs on: DNS, TCP with the source address, TLS certificates and expiry, then each system's own login. A failure says what it means, for example “nothing answered: firewall request from 10.1.2.3 to 203.0.113.7 port 443 (TCP)”.</p>
+          <p class="proof">Tests for refused and unresolvable hosts, untrusted certificates, refused tokens and wrong database passwords.</p>
+        </div>
+      </div>
+
+      <div class="row">
+        <p class="pain">Passwords and tokens copied into scripts.<small>They end up in many channels, get logged by accident, and are painful to rotate.</small></p>
+        <div class="fix">
+          <p>Databases, SFTP servers and APIs are named once per environment, and secrets are stored encrypted. Code calls <code>api("empi").get("/patients/1")</code> and the engine adds the token outside the script. Rotating a token means changing one secret.</p>
+          <p class="proof">Interface code has no network or file access of its own. The engine refuses anything else.</p>
+        </div>
+      </div>
+
+      <div class="group-label">Files</div>
+
+      <div class="row">
+        <p class="pain">A big file crashes the engine halfway.<small>Then nobody knows which rows went through. Resend everything and get duplicates, or hand-edit the file.</small></p>
+        <div class="fix">
+          <p>Files are streamed record by record. Every 500 records are committed together with the position in the file. After a crash, reading resumes there. A file is only picked up once it has stopped changing, and only moved once everything in it is stored.</p>
+          <p class="proof">Engine killed partway through a 300,000-row file and restarted: 300,000 stored, 0 duplicates.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="numbers">
+  <div class="wrap">
+    <div class="sec-head">
+      <p class="eyebrow">Numbers</p>
+      <h2>Measured, with the yardstick next to them</h2>
+      <p class="lede">A large hospital network's ADT feed of 1 million messages a day averages about 12 messages a second, with peaks around ten times that. These were measured on a development laptop with a slow disk (WSL2, about 2.5 ms per flush), not on a server, so read them as a floor.</p>
+    </div>
+
+    <div class="scale" aria-label="Messages per second, drawn to scale">
+      <div class="scale-row"><span>1M/day ADT feed, average</span><div class="track"><div class="fill" style="width:0.39%"></div></div><span class="val">12/s</span></div>
+      <div class="scale-row"><span>Same feed at a 10× peak</span><div class="track"><div class="fill" style="width:3.9%"></div></div><span class="val">~120/s</span></div>
+      <div class="scale-row us"><span>Ductus MLLP ingest, every message on disk before its ACK</span><div class="track"><div class="fill" style="width:100%"></div></div><span class="val">~3,100/s</span></div>
+      <p class="scale-cap">Messages per second, drawn to one linear scale. Ductus figure: 16 sender connections, each message flushed to disk before it is acknowledged.</p>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>What</th><th>Measured</th><th>Under these conditions</th></tr></thead>
+        <tbody>
+          <tr><td>MLLP ingest, one sender connection</td><td class="n">~440/s</td><td class="ctx">One disk flush per acknowledgement. ~870/s with relaxed durability.</td></tr>
+          <tr><td>Fan-out to 5 destinations</td><td class="n">8,400 deliveries/s</td><td class="ctx">6,000 messages, 5 receivers each. Ingest speed unchanged.</td></tr>
+          <tr><td>Fan-out to 25 destinations</td><td class="n">18,800 deliveries/s</td><td class="ctx">6,000 messages, 25 receivers each.</td></tr>
+          <tr><td>Large file ingest</td><td class="n">~100,000 records/s</td><td class="ctx">CSV split into records, relaxed durability.</td></tr>
+          <tr><td>Realistic HL7 ORU transform in TypeScript</td><td class="n">~14,800/s</td><td class="ctx">Per CPU thread.</td></tr>
+          <tr><td>Startup with 1,001 interfaces</td><td class="n">0.4 s</td><td class="ctx">Every interface loaded and compiled. 111 MB memory, no CPU when idle.</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="lede">Fast startup is what makes upgrades uneventful: senders reconnect to a ready engine within a second, and nothing they sent is lost meanwhile. Numbers on real server hardware are still to come.</p>
+  </div>
+</section>
+
+<section id="guarantees">
+  <div class="wrap">
+    <div class="sec-head">
+      <p class="eyebrow">Guarantees</p>
+      <h2>What it promises, and how that's checked</h2>
+      <p class="lede">Every guarantee has an end-to-end demo that kills the engine mid-stream and checks the result. They all run on every change.</p>
+    </div>
+    <div class="guarantees">
+      <div><h3>Stored before acknowledged</h3><p>A message is committed to PostgreSQL before the sender gets its ACK. Files are moved only after every record is stored. An engine crash loses nothing.</p></div>
+      <div><h3>In order per patient</h3><p>Messages with the same key, such as the MRN, reach each destination in order, across restarts. Different patients go in parallel.</p></div>
+      <div><h3>At least once, with a stable id</h3><p>A crash between sending and recording it can resend one message. Dedupe at intake and a stable id per message let receivers ignore the repeat.</p></div>
+      <div><h3>Rollback is reinstalling</h3><p>Database changes only ever add, and older versions start on newer schemas. Rolling back means reinstalling the previous binary.</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="open-core">
+  <div class="wrap">
+    <div class="sec-head">
+      <p class="eyebrow">Open core</p>
+      <h2>A complete engine under Apache-2.0</h2>
+      <p class="lede">The free edition is a production engine, not a trial. A few features that mainly matter to large, multi-site organizations are sold under a commercial license, and they fund full-time development of the rest.</p>
+    </div>
+    <div class="editions">
+      <div class="edition free">
+        <span class="tag">Open source · Apache-2.0</span>
+        <h3>Everything to build, run and operate on a server</h3>
+        <ul>
+          <li>The engine: connectors, HL7 and other formats, routing, ordering, retries, quarantine, dedupe, rate limits</li>
+          <li>Message storage, retention, search and replay</li>
+          <li>The TypeScript SDK, CLI, test framework and validation</li>
+          <li>Web admin, monitoring and alerting</li>
+          <li>User management with LDAP and standard roles</li>
+        </ul>
+      </div>
+      <div class="edition">
+        <span class="tag">Enterprise · commercial</span>
+        <h3>For large, multi-site organizations</h3>
+        <ul>
+          <li>Clustering, automatic failover and rolling upgrades</li>
+          <li>Archive tiers on object storage and compliance (WORM) storage</li>
+          <li>SSO (SAML, OIDC) and fine-grained permissions</li>
+          <li>Advanced analytics and forecasting</li>
+          <li>Support with SLAs</li>
+        </ul>
+        <p>Only production counts. Dev, test and DR environments are free.</p>
+      </div>
+    </div>
+    <div class="promises">
+      <div><b>The core stays Apache-2.0.</b><span>No move to a closed or source-available license.</span></div>
+      <div><b>Free stays free.</b><span>A feature that ships in the open-source edition stays there.</span></div>
+      <div><b>No crippleware.</b><span>Reliability, data safety and security fixes are never held back from the free edition.</span></div>
+      <div><b>Your data stays yours.</b><span>Interfaces are plain files in Git. Messages live in your own PostgreSQL.</span></div>
+      <div><b>A license problem never stops messages.</b><span>Interfaces keep processing whatever happens to a key.</span></div>
+      <div><b>Contributions stay open.</b><span>A DCO sign-off, not a CLA.</span></div>
+    </div>
+  </div>
+</section>
+
+<section id="roadmap">
+  <div class="wrap">
+    <div class="sec-head">
+      <p class="eyebrow">Roadmap</p>
+      <h2>Where it stands</h2>
+      <p class="lede">Built in the open by a healthcare interface engineer, one release at a time. Each release ends with its tests and demos passing.</p>
+    </div>
+    <ol class="road">
+      <li class="done"><span class="ver">v0.1</span><span class="dot"></span><span class="what"><b>Walking skeleton</b><span>MLLP in, stored, transformed, sent. October 2026.</span></span></li>
+      <li class="done"><span class="ver">v0.2</span><span class="dot"></span><span class="what"><b>HL7 and the TypeScript SDK</b><span>Field access by HL7 numbering, typings for the editor, the test framework.</span></span></li>
+      <li class="done"><span class="ver">v0.3</span><span class="dot"></span><span class="what"><b>Reliability</b><span>Per-patient ordering, dedupe, retries, quarantine, crash recovery.</span></span></li>
+      <li class="done"><span class="ver">v0.4</span><span class="dot"></span><span class="what"><b>Connectors and configuration</b><span>HTTP, files, SFTP, schedules, PostgreSQL and SQL Server lookups, environments and encrypted secrets.</span></span></li>
+      <li class="now"><span class="ver">v0.5</span><span class="dot"></span><span class="what"><b>Web admin and operations</b><span>Done: several destinations, impact and doctor, the REST API, drain, retention, monitoring and hotspots. Next: the web UI, alerts, users and roles.</span></span></li>
+      <li><span class="ver">v0.6</span><span class="dot"></span><span class="what"><b>Installable</b><span>Packages for Linux, Windows and Docker, upgrades in place, TLS everywhere, the docs site and downloads.</span></span></li>
+      <li><span class="ver">v0.7</span><span class="dot"></span><span class="what"><b>Developer workflow</b><span>The VS Code extension with debugging, and releases promoted across environments.</span></span></li>
+      <li><span class="ver">v0.8</span><span class="dot"></span><span class="what"><b>Performance and sizing</b><span>Tools and numbers to size servers and interfaces yourself.</span></span></li>
+      <li><span class="ver">v0.9</span><span class="dot"></span><span class="what"><b>Security audit</b><span>Before anyone trusts it with patient data in production.</span></span></li>
+      <li><span class="ver">v1.0</span><span class="dot"></span><span class="what"><b>Hardening and a soak test</b><span>Seven days at ten times a 1M/day load across 1,000+ interfaces, with zero messages lost through an upgrade and a forced crash.</span></span></li>
+    </ol>
+  </div>
+</section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="contact">
+      <span>Questions, or want to try it early?</span>
+      <span class="mono" id="email">admin@getductus.com</span>
+      <button class="copy" type="button" id="copy-email">Copy</button>
+    </div>
+    <span>Ductus · open core, Apache-2.0</span>
+  </div>
+</footer>
+
+<script>
+  document.getElementById("copy-email").addEventListener("click", function () {
+    var btn = this, text = document.getElementById("email").textContent;
+    var done = function () { btn.textContent = "Copied"; setTimeout(function () { btn.textContent = "Copy"; }, 1600); };
+    var select = function () { var r = document.createRange(); r.selectNodeContents(document.getElementById("email")); var s = getSelection(); s.removeAllRanges(); s.addRange(r); };
+    try { navigator.clipboard.writeText(text).then(done, select); } catch (e) { select(); }
+  });
+</script>
+</body>
+</html>
