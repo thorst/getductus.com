@@ -239,9 +239,12 @@ footer .wrap { padding-block: 40px 56px; display: flex; flex-wrap: wrap; gap: 16
       <a href="#fixes">What it fixes</a>
       <a href="#numbers">Numbers</a>
       <a href="#open-core">Open core</a>
+      <a href="#install">Install</a>
       <a href="#roadmap">Roadmap</a>
+      <a href="https://docs.getductus.com">Docs</a>
+      <a href="https://github.com/thorst/ductus/releases">Download</a>
     </nav>
-    <span class="status-pill">v0.5 in development</span>
+    <span class="status-pill">v0.6 in development</span>
   </div>
 </header>
 
@@ -253,10 +256,10 @@ footer .wrap { padding-block: 40px 56px; display: flex; flex-wrap: wrap; gap: 16
       <h1>An integration engine that tells you <em>why the queue is stuck</em>.</h1>
       <p class="lede">Ductus (Latin for <i>conduit</i>) moves HL7 v2, JSON, XML, CSV and files between hospital systems. Interfaces are TypeScript you can read, test and keep in Git. They run on one Rust binary with PostgreSQL as the store and queue.</p>
       <p class="lede">It's for interface teams running hundreds of Mirth or Cloverleaf connections who are tired of guessing.</p>
-      <p class="note"><strong>Early development.</strong> v0.5 is in progress and Ductus isn't ready for production yet. Everything on this page works today and is checked by tests or a demo that runs on every change.</p>
+      <p class="note"><strong>Early development.</strong> v0.6 is in progress and Ductus isn't ready for production yet. Everything on this page works today and is checked by tests or a demo that runs on every change.</p>
       <div class="actions">
         <a class="btn primary" href="#fixes">See what it fixes</a>
-        <a class="btn ghost" href="#open-core">How it's licensed</a>
+        <a class="btn ghost" href="https://docs.getductus.com">Read the docs</a>
       </div>
     </div>
 
@@ -464,6 +467,28 @@ footer .wrap { padding-block: 40px 56px; display: flex; flex-wrap: wrap; gap: 16
   </div>
 </section>
 
+<section id="install">
+  <div class="wrap">
+    <div class="sec-head">
+      <p class="eyebrow">Install</p>
+      <h2>Linux or Windows, one engine</h2>
+      <p class="lede">The same interfaces, configuration and database on both: a project moves from one to the other with only its file paths changed. We recommend Linux, unless the engine must log in to SQL Server with Windows accounts or your team runs only Windows servers.</p>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th></th><th>Linux (recommended)</th><th>Windows</th></tr></thead>
+        <tbody>
+          <tr><td>Install</td><td class="ctx">A <code>.deb</code> or <code>.rpm</code> package (Ubuntu 22.04+, Debian 12+, RHEL, Rocky and Alma 9) with a systemd service, or a portable <code>.tar.gz</code></td><td class="ctx">An MSI with a Windows service, or a portable <code>.zip</code></td></tr>
+          <tr><td>Upgrades</td><td class="ctx">Handed over to the new version: no connection refused, receiving never stops, and a new version that can't start leaves the old one running</td><td class="ctx">A restart of the service: the engine is down for about 3 seconds, nothing lost</td></tr>
+          <tr><td>SQL Server logins</td><td class="ctx">SQL logins; Windows logins over NTLM only</td><td class="ctx">SQL logins and Windows logins, Kerberos included, as a gMSA or a named account</td></tr>
+          <tr><td>Containers</td><td class="ctx">A Docker image for trying and developing (Kubernetes is planned)</td><td class="ctx">None</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="lede">Every difference, with the measurement behind it, is in <a href="https://docs.getductus.com/choosing-linux-or-windows.html">Choosing Linux or Windows</a>. Downloads are on the <a href="https://github.com/thorst/ductus/releases">releases page</a>, each with its checksums and proof that GitHub built it from the tagged source.</p>
+  </div>
+</section>
+
 <section id="guarantees">
   <div class="wrap">
     <div class="sec-head">
@@ -535,8 +560,8 @@ footer .wrap { padding-block: 40px 56px; display: flex; flex-wrap: wrap; gap: 16
       <li class="done"><span class="ver">v0.2</span><span class="dot"></span><span class="what"><b>HL7 and the TypeScript SDK</b><span>Field access by HL7 numbering, typings for the editor, the test framework.</span></span></li>
       <li class="done"><span class="ver">v0.3</span><span class="dot"></span><span class="what"><b>Reliability</b><span>Per-patient ordering, dedupe, retries, quarantine, crash recovery.</span></span></li>
       <li class="done"><span class="ver">v0.4</span><span class="dot"></span><span class="what"><b>Connectors and configuration</b><span>HTTP, files, SFTP, schedules, PostgreSQL and SQL Server lookups, environments and encrypted secrets.</span></span></li>
-      <li class="now"><span class="ver">v0.5</span><span class="dot"></span><span class="what"><b>Web admin and operations</b><span>Done: several destinations, impact and doctor, the REST API, drain, retention, monitoring and hotspots. Next: the web UI, alerts, users and roles.</span></span></li>
-      <li><span class="ver">v0.6</span><span class="dot"></span><span class="what"><b>Installable</b><span>Packages for Linux, Windows and Docker, upgrades in place, TLS everywhere, the docs site and downloads.</span></span></li>
+      <li class="done"><span class="ver">v0.5</span><span class="dot"></span><span class="what"><b>Web admin and operations</b><span>The web UI, several destinations, impact and doctor, the REST API, drain, retention, monitoring and hotspots, alerts, users, roles and LDAP.</span></span></li>
+      <li class="now"><span class="ver">v0.6</span><span class="dot"></span><span class="what"><b>Installable</b><span>Packages for Linux, Windows and Docker, upgrades with no connection refused, TLS everywhere, the docs site and downloads.</span></span></li>
       <li><span class="ver">v0.7</span><span class="dot"></span><span class="what"><b>Developer workflow</b><span>The VS Code extension with debugging, and releases promoted across environments.</span></span></li>
       <li><span class="ver">v0.8</span><span class="dot"></span><span class="what"><b>Performance and sizing</b><span>Tools and numbers to size servers and interfaces yourself.</span></span></li>
       <li><span class="ver">v0.9</span><span class="dot"></span><span class="what"><b>Security audit</b><span>Before anyone trusts it with patient data in production.</span></span></li>
