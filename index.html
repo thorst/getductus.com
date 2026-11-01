@@ -170,6 +170,7 @@ th, td { text-align: left; padding: 12px 14px 12px 0; border-bottom: 1px solid v
 th { font-family: var(--mono); font-weight: 600; font-size: 0.75rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
 td.n { font-family: var(--mono); font-variant-numeric: tabular-nums; white-space: nowrap; color: var(--ink); font-weight: 600; }
 td.ctx { color: var(--muted); }
+.files td:first-child code { white-space: nowrap; }
 
 /* Guarantees */
 .guarantees { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0; border-top: 2px solid var(--ink); }
@@ -223,6 +224,13 @@ footer .wrap { padding-block: 40px 56px; display: flex; flex-wrap: wrap; gap: 16
 @media (max-width: 560px) {
   .nav { display: none; }
   .status-pill { margin-left: auto; }
+  /* The download table as one block per file: name; what it's for and its size; how to install. */
+  .files thead { display: none; }
+  .files tr { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px 16px; padding: 14px 0; border-bottom: 1px solid var(--line); }
+  .files td { padding: 0; border: 0; }
+  .files td:first-child { grid-column: 1 / -1; }
+  .files td.n { grid-column: 2; grid-row: 2; }
+  .files td:last-child { grid-column: 1; }
 }
 </style>
 </head>
@@ -242,7 +250,8 @@ footer .wrap { padding-block: 40px 56px; display: flex; flex-wrap: wrap; gap: 16
       <a href="#install">Install</a>
       <a href="#roadmap">Roadmap</a>
       <a href="https://docs.getductus.com">Docs</a>
-      <a href="https://github.com/thorst/ductus/releases">Download</a>
+      <a href="#download">Download</a>
+      <a href="https://github.com/thorst/ductus">GitHub</a>
     </nav>
     <span class="status-pill">v0.6 pre-release</span>
   </div>
@@ -485,7 +494,47 @@ footer .wrap { padding-block: 40px 56px; display: flex; flex-wrap: wrap; gap: 16
         </tbody>
       </table>
     </div>
-    <p class="lede">Every difference, with the measurement behind it, is in <a href="https://docs.getductus.com/choosing-linux-or-windows.html">Choosing Linux or Windows</a>. Downloads are on the <a href="https://github.com/thorst/ductus/releases">releases page</a>, each with its checksums and proof that GitHub built it from the tagged source.</p>
+    <p class="lede">Every difference, with the measurement behind it, is in <a href="https://docs.getductus.com/choosing-linux-or-windows.html">Choosing Linux or Windows</a>. The files are <a href="#download">below</a>.</p>
+  </div>
+</section>
+
+<section id="download">
+  <div class="wrap">
+    <div class="sec-head">
+      <p class="eyebrow">Download</p>
+      <h2>Ductus 0.6.0</h2>
+      <p class="lede">A pre-release, from November 2026: for trying, testing and pilots, not production. Every file was built and tested by the project's CI from the tagged source, with every test and demo passing first.</p>
+    </div>
+    <div class="table-wrap">
+      <table class="files">
+        <thead><tr><th>File</th><th>For</th><th>Size</th><th>How to install</th></tr></thead>
+        <tbody>
+          <tr><td><a href="https://github.com/thorst/ductus/releases/download/v0.6.0/ductus_0.6.0_amd64.deb"><code>ductus_0.6.0_amd64.deb</code></a></td><td class="ctx">Ubuntu 22.04+, Debian 12+</td><td class="n">43.7 MB</td><td class="ctx"><a href="https://docs.getductus.com/install/linux.html">Linux packages</a></td></tr>
+          <tr><td><a href="https://github.com/thorst/ductus/releases/download/v0.6.0/ductus-0.6.0-1.x86_64.rpm"><code>ductus-0.6.0-1.x86_64.rpm</code></a></td><td class="ctx">RHEL, Rocky and Alma 9</td><td class="n">45.0 MB</td><td class="ctx"><a href="https://docs.getductus.com/install/linux.html">Linux packages</a></td></tr>
+          <tr><td><a href="https://github.com/thorst/ductus/releases/download/v0.6.0/ductus-0.6.0-x64.msi"><code>ductus-0.6.0-x64.msi</code></a></td><td class="ctx">Windows Server, Windows 11</td><td class="n">31.8 MB</td><td class="ctx"><a href="https://docs.getductus.com/install/windows.html">Windows installer</a></td></tr>
+          <tr><td><a href="https://github.com/thorst/ductus/releases/download/v0.6.0/ductus-0.6.0-linux-x64.tar.gz"><code>ductus-0.6.0-linux-x64.tar.gz</code></a></td><td class="ctx">The program alone, for Linux: checking an upgrade before installing it, servers without the packages</td><td class="n">42.9 MB</td><td class="ctx"><a href="https://docs.getductus.com/install/archive.html">Portable archive</a></td></tr>
+          <tr><td><a href="https://github.com/thorst/ductus/releases/download/v0.6.0/ductus-0.6.0-windows-x64.zip"><code>ductus-0.6.0-windows-x64.zip</code></a></td><td class="ctx">The same, for Windows</td><td class="n">39.8 MB</td><td class="ctx"><a href="https://docs.getductus.com/install/archive.html">Portable archive</a></td></tr>
+          <tr><td><a href="https://github.com/thorst/ductus/releases/download/v0.6.0/ductus-docs-0.6.0.zip"><code>ductus-docs-0.6.0.zip</code></a></td><td class="ctx">The docs for this version, to read offline</td><td class="n">3.2 MB</td><td class="ctx">Unzip, open <code>index.html</code></td></tr>
+          <tr><td><a href="https://github.com/thorst/ductus/releases/download/v0.6.0/SHA256SUMS"><code>SHA256SUMS</code></a></td><td class="ctx">Checking any of the files above</td><td class="n">1 KB</td><td class="ctx">Below</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="code">
+      <div class="sec-head">
+        <h3>Check a download before installing it</h3>
+        <p class="lede">The checksum shows the file wasn't changed on the way. The attestation shows GitHub built it from this project's tagged source, which stands in for a code signature until v1.0: Windows' SmartScreen says "unknown publisher" for the MSI until then.</p>
+        <p class="lede">On Windows, compare <code>(Get-FileHash ductus-0.6.0-x64.msi).Hash</code> with the file's line in <code>SHA256SUMS</code>. <a href="https://docs.getductus.com/install/download.html">What each check prints, and what a failure looks like</a>.</p>
+      </div>
+      <div class="file">
+        <div class="file-name">in the folder with the downloads</div>
+<pre><span class="c"># each file you downloaded says OK</span>
+sha256sum --check --ignore-missing SHA256SUMS
+
+<span class="c"># GitHub CLI: ends with "Verification succeeded!"</span>
+gh attestation verify ductus_0.6.0_amd64.deb -R thorst/ductus</pre>
+      </div>
+    </div>
+    <p class="lede">Also on <a href="https://github.com/thorst/ductus/releases/tag/v0.6.0">the release page</a>: the release notes, and an SBOM for each build (every library inside, for your security team's tools). The source is on <a href="https://github.com/thorst/ductus">GitHub</a>.</p>
   </div>
 </section>
 
@@ -578,7 +627,7 @@ footer .wrap { padding-block: 40px 56px; display: flex; flex-wrap: wrap; gap: 16
       <span class="mono" id="email">admin@getductus.com</span>
       <button class="copy" type="button" id="copy-email">Copy</button>
     </div>
-    <span>Ductus · open core, Apache-2.0</span>
+    <span>Ductus · open core, Apache-2.0 · <a href="https://github.com/thorst/ductus">GitHub</a> · <a href="https://docs.getductus.com">Docs</a></span>
   </div>
 </footer>
 
